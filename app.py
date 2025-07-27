@@ -205,59 +205,108 @@ def predict_insomnia_rule_based(input_data):
 def display_results(prediction, prediction_proba):
     """Tampilkan hasil prediksi"""
     st.markdown('<h2 class="sub-header">🔍 Hasil Analisis</h2>', unsafe_allow_html=True)
+    
     if prediction == 1:
         st.markdown('<div class="prediction-box insomnia-risk">', unsafe_allow_html=True)
         st.markdown('<h3 style="color: #d32f2f;">⚠️ RISIKO INSOMNIA DETECTED</h3>', unsafe_allow_html=True)
         if prediction_proba is not None:
-            st.markdown(f'<p style="font-size: 1.2rem;">Probabilitas: <strong>{prediction_proba[1]*100:.1f}%</strong></p>', unsafe_allow_html=True)
+            insomnia_prob = prediction_proba[1] * 100
+            st.markdown(f'<p style="font-size: 1.2rem;">Probabilitas: <strong>{insomnia_prob:.1f}%</strong></p>', unsafe_allow_html=True)
             st.markdown(f"""
             <div style="margin-top:10px;">
                 <b>Penjelasan:</b><br>
                 <span style='color:#388e3c;'>Probabilitas Normal</span> = {prediction_proba[0]*100:.1f}%<br>
-                <span style='color:#d32f2f;'>Probabilitas Insomnia</span> = {prediction_proba[1]*100:.1f}%<br>
+                <span style='color:#d32f2f;'>Probabilitas Insomnia</span> = {insomnia_prob:.1f}%<br>
             </div>
             """, unsafe_allow_html=True)
-            if prediction_proba[1] > 0.5:
-                st.info(f"Model memperkirakan kamu berisiko insomnia dengan tingkat keyakinan {prediction_proba[1]*100:.1f}%.")
-            else:
-                st.info(f"Model memperkirakan kamu tidak berisiko insomnia dengan tingkat keyakinan {prediction_proba[0]*100:.1f}%.")
+            st.info(f"Model memperkirakan kamu berisiko insomnia dengan tingkat keyakinan {insomnia_prob:.1f}%.")
         st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Tips berdasarkan tingkat probabilitas
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.markdown("**Rekomendasi:**")
-        st.markdown("""
-        - Konsultasikan dengan dokter spesialis tidur
-        - Terapkan teknik relaksasi sebelum tidur
-        - Hindari kafein dan alkohol sebelum tidur
-        - Buat jadwal tidur yang konsisten
-        - Ciptakan lingkungan tidur yang nyaman
-        """)
+        st.markdown("**Rekomendasi berdasarkan tingkat risiko:**")
+        
+        if prediction_proba is not None:
+            if insomnia_prob >= 80:
+                st.markdown("""
+                **🔴 RISIKO TINGGI ({:.1f}%) - Segera Konsultasi Ahli**
+                - **PRIORITAS UTAMA**: Segera konsultasikan dengan ahli kesehatan atau spesialis gangguan tidur
+                - Terapkan teknik relaksasi intensif (meditasi, yoga, breathing exercise)
+                - Hindari kafein, alkohol, dan nikotin sepenuhnya
+                - Buat jadwal tidur yang sangat ketat dan konsisten
+                - Ciptakan lingkungan tidur yang optimal (gelap, sejuk, tenang)
+                - Pertimbangkan terapi kognitif behavioral untuk insomnia (CBT-I)
+                """.format(insomnia_prob))
+            elif insomnia_prob >= 60:
+                st.markdown("""
+                **🟡 RISIKO SEDANG ({:.1f}%) - Perlu Perhatian Khusus**
+                - Konsultasikan dengan ahli kesehatan dalam waktu dekat
+                - Terapkan teknik relaksasi sebelum tidur secara rutin
+                - Hindari kafein dan alkohol minimal 6 jam sebelum tidur
+                - Buat jadwal tidur yang konsisten
+                - Ciptakan lingkungan tidur yang nyaman
+                - Lakukan aktivitas fisik ringan di pagi/siang hari
+                """.format(insomnia_prob))
+            else:
+                st.markdown("""
+                **🟢 RISIKO RENDAH ({:.1f}%) - Tetap Waspada**
+                - Monitor pola tidur Anda secara rutin
+                - Terapkan teknik relaksasi ringan sebelum tidur
+                - Hindari kafein di sore/malam hari
+                - Pertahankan jadwal tidur yang teratur
+                - Ciptakan rutinitas tidur yang nyaman
+                """.format(insomnia_prob))
         st.markdown('</div>', unsafe_allow_html=True)
+        
     elif prediction == 0:
         st.markdown('<div class="prediction-box no-insomnia">', unsafe_allow_html=True)
         st.markdown('<h3 style="color: #388e3c;">✅ TIDAK ADA RISIKO INSOMNIA</h3>', unsafe_allow_html=True)
         if prediction_proba is not None:
-            st.markdown(f'<p style="font-size: 1.2rem;">Probabilitas: <strong>{prediction_proba[0]*100:.1f}%</strong></p>', unsafe_allow_html=True)
+            normal_prob = prediction_proba[0] * 100
+            st.markdown(f'<p style="font-size: 1.2rem;">Probabilitas: <strong>{normal_prob:.1f}%</strong></p>', unsafe_allow_html=True)
             st.markdown(f"""
             <div style="margin-top:10px;">
                 <b>Penjelasan:</b><br>
-                <span style='color:#388e3c;'>Probabilitas Normal</span> = {prediction_proba[0]*100:.1f}%<br>
+                <span style='color:#388e3c;'>Probabilitas Normal</span> = {normal_prob:.1f}%<br>
                 <span style='color:#d32f2f;'>Probabilitas Insomnia</span> = {prediction_proba[1]*100:.1f}%<br>
             </div>
             """, unsafe_allow_html=True)
-            if prediction_proba[1] > 0.5:
-                st.info(f"Model memperkirakan kamu berisiko insomnia dengan tingkat keyakinan {prediction_proba[1]*100:.1f}%.")
-            else:
-                st.info(f"Model memperkirakan kamu tidak berisiko insomnia dengan tingkat keyakinan {prediction_proba[0]*100:.1f}%.")
+            st.info(f"Model memperkirakan kamu tidak berisiko insomnia dengan tingkat keyakinan {normal_prob:.1f}%.")
         st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Tips berdasarkan tingkat probabilitas
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.markdown("**Tips untuk menjaga kualitas tidur:**")
-        st.markdown("""
-        - Pertahankan jadwal tidur yang teratur
-        - Lakukan aktivitas fisik secara rutin
-        - Kelola stres dengan baik
-        - Hindari penggunaan gadget sebelum tidur
-        - Konsumsi makanan sehat dan seimbang
-        """)
+        st.markdown("**Tips untuk mempertahankan kualitas tidur:**")
+        
+        if prediction_proba is not None:
+            if normal_prob >= 90:
+                st.markdown("""
+                **🟢 KUALITAS TIDUR SANGAT BAIK ({:.1f}%) - Pertahankan Pola Ini**
+                - Lanjutkan rutinitas tidur yang sudah baik
+                - Pertahankan jadwal tidur yang konsisten
+                - Lakukan aktivitas fisik secara rutin
+                - Kelola stres dengan baik
+                - Hindari perubahan drastis pada pola tidur
+                """.format(normal_prob))
+            elif normal_prob >= 70:
+                st.markdown("""
+                **🟡 KUALITAS TIDUR BAIK ({:.1f}%) - Tetap Optimalkan**
+                - Pertahankan jadwal tidur yang teratur
+                - Lakukan aktivitas fisik secara rutin
+                - Kelola stres dengan baik
+                - Hindari penggunaan gadget sebelum tidur
+                - Konsumsi makanan sehat dan seimbang
+                """.format(normal_prob))
+            else:
+                st.markdown("""
+                **🟠 KUALITAS TIDUR CUKUP ({:.1f}%) - Perlu Perbaikan Ringan**
+                - Tingkatkan konsistensi jadwal tidur
+                - Lakukan aktivitas fisik secara rutin
+                - Kelola stres dengan lebih baik
+                - Hindari penggunaan gadget sebelum tidur
+                - Konsumsi makanan sehat dan seimbang
+                - Pertimbangkan teknik relaksasi ringan
+                """.format(normal_prob))
         st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.error("Hasil prediksi tidak dikenali.")
@@ -371,6 +420,55 @@ def main():
     # Konten utama sesuai halaman
     if st.session_state['page'] == 'home':
         st.markdown('<h1 style="text-align:center; font-size:2rem; font-weight:bold; margin-bottom:2rem;">PENDETEKSI INSOMNIA</h1>', unsafe_allow_html=True)
+        
+        # Panduan mengisi form
+        st.markdown("""
+        ### 📋 Panduan Pengisian Form
+        
+        **Silakan isi data dengan akurat sesuai kondisi Anda saat ini:**
+        
+        **Data Dasar:**
+        - **Jenis Kelamin**: Pilih sesuai identitas Anda
+        - **Usia**: Masukkan usia dalam tahun (18-100 tahun)
+        - **Pekerjaan**: Isi dengan pekerjaan Anda saat ini (hanya huruf, contoh: Guru, Dokter, Programmer)
+        
+        **Data Tidur:**
+        - **Durasi Tidur**: Rata-rata waktu tidur per hari dalam jam (3-12 jam)
+        - **Kualitas Tidur**: Seberapa baik kualitas tidur Anda
+          - **1-2**: Sangat buruk (sering terbangun, tidak nyenyak)
+          - **3-4**: Buruk (tidur tidak nyenyak, sering gelisah)
+          - **5-6**: Cukup (tidur biasa, kadang terbangun)
+          - **7-8**: Baik (tidur nyenyak, bangun segar)
+          - **9-10**: Sangat baik (tidur sangat nyenyak, sangat segar)
+        
+        **Data Kesehatan:**
+        - **Level Aktivitas Fisik**: Seberapa aktif Anda berolahraga/beraktivitas fisik
+          - **1-2**: Sangat pasif (hampir tidak berolahraga, banyak duduk)
+          - **3-4**: Pasif (olahraga ringan 1-2x seminggu)
+          - **5-6**: Sedang (olahraga rutin 3-4x seminggu)
+          - **7-8**: Aktif (olahraga intensif 5-6x seminggu)
+          - **9-10**: Sangat aktif (olahraga setiap hari, aktivitas fisik tinggi)
+        
+        - **Level Stres**: Seberapa stres Anda saat ini
+          - **1-2**: Tidak stres (sangat tenang, tidak ada tekanan)
+          - **3-4**: Sedikit stres (ada tekanan ringan, masih bisa mengelola)
+          - **5-6**: Stres sedang (ada tekanan, kadang sulit tidur)
+          - **7-8**: Stres tinggi (banyak tekanan, sering sulit tidur)
+          - **9-10**: Sangat stres (tekanan berat, sangat sulit tidur)
+        
+        - **Kategori BMI**: Pilih sesuai dengan indeks massa tubuh Anda
+          - **Normal/Normal Weight**: BMI 18.5-24.9
+          - **Overweight**: BMI 25-29.9
+          - **Obese**: BMI ≥ 30
+          - **Underweight**: BMI < 18.5
+        
+        - **Tekanan Darah**: Masukkan dalam format sistolik/diastolik (contoh: 120/80)
+        - **Detak Jantung**: Rata-rata detak jantung per menit (40-200 bpm)
+        - **Langkah Harian**: Rata-rata jumlah langkah per hari (1000-20000 langkah)
+        
+        > **💡 Tips:** Semakin akurat data yang Anda masukkan, semakin tepat hasil prediksi yang akan diberikan.
+        """)
+        
         st.markdown('<div style="display:flex; justify-content:center;">', unsafe_allow_html=True)
         with st.form("form_home"):
             col1, col2 = st.columns([1,1])
@@ -392,6 +490,43 @@ def main():
             st.markdown('</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         if submit:
+            # Validasi form - pastikan semua field terisi
+            if not gender or not age or not occupation or not sleep_duration or not quality_of_sleep or not physical_activity or not stress_level or not bmi_category or not blood_pressure or not heart_rate or not daily_steps:
+                st.error("❌ **Mohon lengkapi semua data yang diperlukan!** Semua field harus diisi sebelum melakukan prediksi.")
+                return
+            
+            # Validasi pekerjaan - harus diisi dan hanya huruf
+            if not occupation or occupation.strip() == "":
+                st.error("❌ **Pekerjaan harus diisi!**")
+                return
+            
+            # Cek apakah pekerjaan hanya mengandung huruf dan spasi
+            if not occupation.replace(" ", "").replace("-", "").replace(".", "").isalpha():
+                st.error("❌ **Pekerjaan hanya boleh berisi huruf!** Contoh: Guru, Dokter, Programmer, dll.")
+                return
+            
+            # Validasi tekanan darah
+            if not blood_pressure or '/' not in blood_pressure:
+                st.error("❌ **Tekanan darah harus diisi dengan format yang benar!** Contoh: 120/80")
+                return
+            
+            # Validasi nilai numerik
+            if age < 18 or age > 100:
+                st.error("❌ **Usia harus antara 18-100 tahun!**")
+                return
+            
+            if sleep_duration < 3 or sleep_duration > 12:
+                st.error("❌ **Durasi tidur harus antara 3-12 jam!**")
+                return
+            
+            if heart_rate < 40 or heart_rate > 200:
+                st.error("❌ **Detak jantung harus antara 40-200 bpm!**")
+                return
+            
+            if daily_steps < 1000 or daily_steps > 20000:
+                st.error("❌ **Langkah harian harus antara 1000-20000 langkah!**")
+                return
+            
             input_data = {
                 'Gender': gender,
                 'Age': age,
@@ -420,6 +555,31 @@ def main():
             st.session_state['page'] = 'home'
             st.rerun()
     elif st.session_state['page'] == 'info':
+        st.markdown("## Tentang Aplikasi")
+        st.markdown("""
+        **Deteksi Insomnia AI** adalah aplikasi berbasis machine learning yang dirancang untuk membantu mendeteksi risiko insomnia berdasarkan data kesehatan dan gaya hidup pengguna. Aplikasi ini menggunakan kombinasi algoritma **Random Forest** dan **Gradient Boosting** yang telah dilatih dengan dataset kesehatan dan pola tidur untuk memberikan prediksi yang akurat dan robust.
+        
+        ### Algoritma Machine Learning yang Digunakan:
+        - **Random Forest**: Ensemble method yang menggunakan multiple decision trees untuk meningkatkan akurasi dan mengurangi overfitting
+        - **Gradient Boosting**: Algoritma boosting yang secara berurutan melatih model untuk memperbaiki kesalahan prediksi model sebelumnya
+        
+        ### Fitur Aplikasi:
+        - **Form Input Data**: Pengguna dapat memasukkan data kesehatan seperti usia, jenis kelamin, durasi tidur, kualitas tidur, level stres, aktivitas fisik, dan parameter kesehatan lainnya
+        - **Prediksi Berbasis AI**: Menggunakan kombinasi model Random Forest dan Gradient Boosting untuk menganalisis risiko insomnia
+        - **Visualisasi Data**: Menampilkan grafik dan analisis data untuk membantu memahami kondisi kesehatan
+        - **Rekomendasi**: Memberikan saran dan tips berdasarkan hasil prediksi
+        
+        ### Cara Menggunakan:
+        1. Klik tombol "Form Input" di sidebar
+        2. Isi semua data yang diminta dengan akurat
+        3. Klik tombol "Submit" untuk memulai analisis
+        4. Lihat hasil prediksi dan rekomendasi yang diberikan
+        5. Gunakan informasi ini sebagai referensi untuk konsultasi dengan tenaga kesehatan
+        
+        ### Akurasi Model:
+        Kombinasi Random Forest dan Gradient Boosting memberikan performa yang lebih baik dalam mendeteksi pola-pola yang terkait dengan insomnia. Model ini telah dilatih dengan dataset yang komprehensif dan mencapai tingkat akurasi yang tinggi. Namun, hasil prediksi tetap harus dikonfirmasi oleh tenaga kesehatan profesional.
+        """)
+        
         st.markdown("## Tentang Insomnia")
         st.markdown("""
         **Insomnia** adalah gangguan tidur yang ditandai dengan kesulitan untuk memulai tidur, mempertahankan tidur, atau tidur yang tidak berkualitas meskipun ada kesempatan untuk tidur. Insomnia dapat menyebabkan gangguan pada aktivitas sehari-hari, menurunkan kualitas hidup, dan meningkatkan risiko masalah kesehatan lainnya.
@@ -442,7 +602,7 @@ def main():
         Insomnia yang tidak ditangani dapat meningkatkan risiko kecelakaan, menurunkan produktivitas, serta meningkatkan risiko penyakit kronis seperti hipertensi, diabetes, dan gangguan jantung.
         
         ### Apa yang Harus Dilakukan Jika Anda Berisiko Insomnia?
-        Jika Anda mengalami gejala insomnia atau hasil deteksi menunjukkan risiko insomnia, **segera konsultasikan ke dokter, rumah sakit, atau spesialis gangguan tidur**. Penanganan dini dapat mencegah komplikasi lebih lanjut dan meningkatkan kualitas hidup Anda.
+        Jika Anda mengalami gejala insomnia atau hasil deteksi menunjukkan risiko insomnia, **segera konsultasikan ke ahli kesehatan, rumah sakit, atau spesialis gangguan tidur**. Penanganan dini dapat mencegah komplikasi lebih lanjut dan meningkatkan kualitas hidup Anda.
         
         > _Aplikasi ini hanya sebagai alat bantu edukasi dan skrining awal. Diagnosis dan penanganan medis tetap harus dilakukan oleh tenaga kesehatan profesional._
         """)
