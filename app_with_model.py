@@ -164,43 +164,92 @@ def predict_insomnia(model, input_data):
         st.error(f"Error dalam prediksi: {e}")
         return None, None
 
-def predict_insomnia_rule_based(input_data):
-    """Prediksi insomnia berbasis aturan/rule sederhana, bukan model ML."""
-    score = 0
-    # Aturan sederhana, bisa dimodifikasi sesuai kebutuhan
+def predict_insomnia_with_model(input_data):
+    """Prediksi insomnia menggunakan model machine learning yang sudah dilatih"""
+    try:
+        # Load model
+        model = load_model()
+        if model is None:
+            st.warning("Model tidak tersedia, menggunakan fallback prediction")
+            return predict_insomnia_fallback(input_data)
+        
+        # Preprocess data
+        df_processed = preprocess_input(input_data)
+        
+        # Lakukan prediksi menggunakan model
+        prediction = model.predict(df_processed)
+        prediction_proba = model.predict_proba(df_processed)
+        
+        return prediction[0], prediction_proba[0]
+        
+    except Exception as e:
+        st.error(f"Error dalam prediksi model: {e}")
+        return predict_insomnia_fallback(input_data)
+
+def predict_insomnia_fallback(input_data):
+    """Fallback prediction jika model tidak tersedia atau error"""
+    # Simulasi prediksi model dengan probabilitas yang lebih realistis
+    # Berdasarkan pola data yang umum
+    
+    # Hitung skor berdasarkan fitur-fitur penting
+    sleep_score = 0
+    health_score = 0
+    lifestyle_score = 0
+    
+    # Analisis pola tidur
     if input_data['Sleep Duration'] < 6:
-        score += 2
+        sleep_score += 0.3
+    elif input_data['Sleep Duration'] < 7:
+        sleep_score += 0.1
+    
     if input_data['Quality of Sleep'] < 5:
-        score += 2
+        sleep_score += 0.4
+    elif input_data['Quality of Sleep'] < 7:
+        sleep_score += 0.2
+    
+    # Analisis kesehatan
     if input_data['Stress Level'] > 7:
-        score += 2
-    if input_data['Physical Activity Level'] < 4:
-        score += 1
+        health_score += 0.3
+    elif input_data['Stress Level'] > 5:
+        health_score += 0.15
+    
     if input_data['BMI Category'] == "Obese":
-        score += 1
-    # Konversi skor ke probabilitas dan prediksi (lebih variatif)
-    if score >= 6:
+        health_score += 0.2
+    elif input_data['BMI Category'] == "Overweight":
+        health_score += 0.1
+    
+    if input_data['Heart Rate'] > 100:
+        health_score += 0.1
+    
+    # Analisis gaya hidup
+    if input_data['Physical Activity Level'] < 4:
+        lifestyle_score += 0.2
+    elif input_data['Physical Activity Level'] < 6:
+        lifestyle_score += 0.1
+    
+    if input_data['Daily Steps'] < 5000:
+        lifestyle_score += 0.15
+    elif input_data['Daily Steps'] < 8000:
+        lifestyle_score += 0.05
+    
+    # Total skor risiko
+    total_risk = sleep_score + health_score + lifestyle_score
+    
+    # Konversi ke probabilitas menggunakan sigmoid-like function
+    import math
+    risk_probability = 1 / (1 + math.exp(-5 * (total_risk - 0.5)))
+    
+    # Normalisasi probabilitas
+    normal_prob = 1 - risk_probability
+    insomnia_prob = risk_probability
+    
+    # Tentukan prediksi berdasarkan threshold
+    if insomnia_prob > 0.5:
         prediction = 1
-        prediction_proba = [0.1, 0.9]  # [Normal, Insomnia]
-    elif score == 5:
-        prediction = 1
-        prediction_proba = [0.25, 0.75]
-    elif score == 4:
-        prediction = 1
-        prediction_proba = [0.4, 0.6]
-    elif score == 3:
-        prediction = 1
-        prediction_proba = [0.55, 0.45]
-    elif score == 2:
+    else:
         prediction = 0
-        prediction_proba = [0.7, 0.3]
-    elif score == 1:
-        prediction = 0
-        prediction_proba = [0.8, 0.2]
-    else:  # score == 0
-        prediction = 0
-        prediction_proba = [0.9, 0.1]
-    return prediction, prediction_proba
+    
+    return prediction, [normal_prob, insomnia_prob]
 
 def display_results(prediction, prediction_proba):
     """Tampilkan hasil prediksi"""
@@ -546,9 +595,8 @@ def main():
     elif st.session_state['page'] == 'result':
         input_data = st.session_state.get('input_data')
         if input_data:
-            model = load_model()  # Tetap load model agar terlihat seperti menggunakan model
-            # Gunakan rule-based untuk prediksi
-            prediction, prediction_proba = predict_insomnia_rule_based(input_data)
+            # Gunakan fungsi prediksi dengan model
+            prediction, prediction_proba = predict_insomnia_with_model(input_data)
             if prediction is not None:
                 display_results(prediction, prediction_proba)
         if st.button("Kembali", use_container_width=True):
@@ -566,6 +614,7 @@ def main():
         ### Fitur Aplikasi:
         - **Form Input Data**: Pengguna dapat memasukkan data kesehatan seperti usia, jenis kelamin, durasi tidur, kualitas tidur, level stres, aktivitas fisik, dan parameter kesehatan lainnya
         - **Prediksi Berbasis AI**: Menggunakan kombinasi model Random Forest dan Gradient Boosting untuk menganalisis risiko insomnia
+        - **Visualisasi Data**: Menampilkan grafik dan analisis data untuk membantu memahami kondisi kesehatan
         - **Rekomendasi**: Memberikan saran dan tips berdasarkan hasil prediksi
         
         ### Cara Menggunakan:
@@ -584,8 +633,10 @@ def main():
         **Insomnia** adalah gangguan tidur yang ditandai dengan kesulitan untuk memulai tidur, mempertahankan tidur, atau tidur yang tidak berkualitas meskipun ada kesempatan untuk tidur. Insomnia dapat menyebabkan gangguan pada aktivitas sehari-hari, menurunkan kualitas hidup, dan meningkatkan risiko masalah kesehatan lainnya.
         
         ### Gejala Insomnia:
+        - Sulit untuk mulai tidur di malam hari
         - Sering terbangun di malam hari atau terlalu pagi
         - Merasa lelah atau tidak segar setelah bangun tidur
+        - Mengantuk di siang hari
         - Sulit berkonsentrasi, mudah marah, atau depresi
         
         ### Faktor Risiko Insomnia:
@@ -633,4 +684,4 @@ Dataset yang digunakan dalam pengembangan aplikasi ini diperoleh dari sumber ter
         """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    main()
+    main() 
